@@ -1,0 +1,3 @@
+.terraform.*
+terraform.*
+.terraform/providers/registry.terraform.io/hashicorp
