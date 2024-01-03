@@ -1,29 +1,34 @@
 resource "aws_ecr_repository" "ecr" {
   name = "terraform-ecr"
+  image_tag_mutability = "IMMUTABLE"
+  force_delete = true
   tags = {
     Name = var.ecr_name
   }
 }
 
-data "aws_iam_policy_document" "assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
+resource "aws_iam_role" "ecsTaskExecutionRole-terra" {
+  name = "ecsTaskExecutionRole-terra"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
-  }
+  ]
 }
-
-resource "aws_iam_role" "ecsTaskExecutionRole" {
-  name               = "terraform_ecs_role"
-  path               = "/"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+EOF
 }
 
 
-resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
- role      = aws_iam_role.ecsTaskExecutionRole.name
+
+resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole-terra" {
+ role      = aws_iam_role.ecsTaskExecutionRole-terra.name
  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }

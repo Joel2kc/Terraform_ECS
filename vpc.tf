@@ -32,36 +32,24 @@ resource "aws_nat_gateway" "terraform-nat" {
 }
 
 
-data "aws_availability_zones" "available" {}
-
-resource "aws_subnet" "public-subnet1" {
+resource "aws_subnet" "public-subnet" {
   vpc_id     = aws_vpc.terraform-vpc.id
   cidr_block = "10.0.1.0/24"
-  availability_zone = data.aws_availability_zones.available.names[0]
+  availability_zone = "eu-west-2a"
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet1"
-  }
-}
-
-resource "aws_subnet" "public-subnet2" {
-  vpc_id     = aws_vpc.terraform-vpc.id
-  cidr_block = "10.0.2.0/24"
-  availability_zone = data.aws_availability_zones.available.names[1]
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "public-subnet2"
+    Name = "public-subnet"
   }
 }
 
 resource "aws_subnet" "private-subnet" {
   vpc_id     = aws_vpc.terraform-vpc.id
-  cidr_block = "10.0.3.0/24"
+  cidr_block = "10.0.2.0/24"
+  availability_zone = "eu-west-2b"
 
   tags = {
-    Name = "private-vpc"
+    Name = "private-subnet"
   }
 }
 
@@ -71,7 +59,7 @@ resource "aws_subnet" "private-subnet" {
   #gateway_id                = aws_internet_gateway.terraform-gw.id
 #}
 
-resource "aws_route_table" "private" {
+resource "aws_route_table" "route-table" {
   vpc_id = aws_vpc.terraform-vpc.id
 
   route {
@@ -80,11 +68,16 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name = "private-route"
+    Name = "RouteTable"
   }
 }
 
 resource "aws_route_table_association" "Public-rt" {
+  subnet_id      = aws_subnet.public-subnet.id
+  route_table_id = aws_route_table.route-table.id
+}
+
+resource "aws_route_table_association" "Private-rt" {
   subnet_id      = aws_subnet.private-subnet.id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.route-table.id
 }
